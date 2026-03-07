@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm add firebase-admin)",
+      "Bash(pnpm add -D tsx)",
+      "Bash(npx tsc --noEmit)"
+    ]
+  }
+}
