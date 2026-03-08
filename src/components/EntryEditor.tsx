@@ -27,28 +27,33 @@ interface EditableTask {
   billable: boolean;
   flagged?: boolean;
   hours: string;
+  minutes: string;
 }
 
 function taskToEditable(task: Task): EditableTask {
+  const totalMinutes = Math.round(task.hours * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
   return {
     description: task.description,
     category: task.category,
     subtasks: [...task.subtasks],
     billable: task.billable,
     flagged: task.flagged,
-    hours: task.hours > 0 ? String(task.hours) : "",
+    hours: h > 0 ? String(h) : "",
+    minutes: m > 0 ? String(m) : "",
   };
 }
 
 export default function EntryEditor({ entry, onSave, onCancel }: EntryEditorProps) {
   const [tasks, setTasks] = useState<EditableTask[]>(
-    entry.tasks.length > 0 ? entry.tasks.map(taskToEditable) : [{ description: "", category: "", subtasks: [], billable: true, hours: "" }]
+    entry.tasks.length > 0 ? entry.tasks.map(taskToEditable) : [{ description: "", category: "", subtasks: [], billable: true, hours: "", minutes: "" }]
   );
   const [resources, setResources] = useState<string[]>([...entry.resources]);
   const [notes, setNotes] = useState(entry.notes);
   const [saving, setSaving] = useState(false);
 
-  const assignedHours = tasks.reduce((sum, t) => sum + (parseFloat(t.hours) || 0), 0);
+  const assignedHours = tasks.reduce((sum, t) => sum + (parseFloat(t.hours) || 0) + (parseFloat(t.minutes) || 0) / 60, 0);
   const unassigned = entry.activeHours - assignedHours;
 
   const handleSave = async () => {
@@ -61,7 +66,7 @@ export default function EntryEditor({ entry, onSave, onCancel }: EntryEditorProp
         subtasks: t.subtasks.filter((s) => s.trim()),
         billable: t.billable,
         flagged: t.flagged ?? false,
-        hours: parseFloat(t.hours) || 0,
+        hours: (parseFloat(t.hours) || 0) + (parseFloat(t.minutes) || 0) / 60,
       }));
     const finalResources = resources.filter((r) => r.trim());
     const billableHours = calculateBillableHours(finalTasks, entry.activeHours);
@@ -145,7 +150,7 @@ export default function EntryEditor({ entry, onSave, onCancel }: EntryEditorProp
           <button
             type="button"
             onClick={() =>
-              setTasks((prev) => [...prev, { description: "", category: "", subtasks: [], billable: true, hours: "" }])
+              setTasks((prev) => [...prev, { description: "", category: "", subtasks: [], billable: true, hours: "", minutes: "" }])
             }
             className="flex items-center gap-1.5 text-xs text-accent hover:text-accent/80 transition-colors"
           >
@@ -177,18 +182,33 @@ export default function EntryEditor({ entry, onSave, onCancel }: EntryEditorProp
                         placeholder="category"
                       />
                     </div>
-                    <div className="relative w-24">
+                    <div className="relative w-20">
                       <input
                         type="number"
-                        step="0.25"
+                        step="1"
                         min="0"
                         value={task.hours}
                         onChange={(e) => updateTask(ti, "hours", e.target.value)}
-                        className={`${inputClasses} pr-7 text-right`}
+                        className={`${inputClasses} pr-6 text-right`}
                         placeholder="0"
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary text-xs">
-                        hrs
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-text-tertiary text-xs">
+                        h
+                      </span>
+                    </div>
+                    <div className="relative w-20">
+                      <input
+                        type="number"
+                        step="5"
+                        min="0"
+                        max="59"
+                        value={task.minutes}
+                        onChange={(e) => updateTask(ti, "minutes", e.target.value)}
+                        className={`${inputClasses} pr-8 text-right`}
+                        placeholder="0"
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-text-tertiary text-xs">
+                        min
                       </span>
                     </div>
                     <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer whitespace-nowrap">

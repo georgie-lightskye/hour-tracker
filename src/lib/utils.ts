@@ -102,29 +102,51 @@ export function getMonthRange(date: Date): { start: Date; end: Date } {
 export function generateCSV(entries: Entry[]): string {
   const headers = [
     "Date",
+    "Task",
+    "Category",
+    "Time",
+    "Billable",
+    "Subtasks",
     "Check In",
     "Check Out",
-    "Total Hours",
     "Active Hours",
-    "Billable Hours",
     "Break Hours",
-    "Tasks",
-    "Categories",
-    "Status",
+    "Total Hours",
+    "Notes",
   ];
 
-  const rows = entries.map((entry) => [
-    formatDate(entry.date),
-    formatTime(entry.checkIn),
-    entry.checkOut ? formatTime(entry.checkOut) : "In Progress",
-    entry.totalHours.toFixed(2),
-    entry.activeHours.toFixed(2),
-    entry.billableHours.toFixed(2),
-    calculateBreakHours(entry.breaks).toFixed(2),
-    entry.tasks.map((t) => t.description).join("; "),
-    [...new Set(entry.tasks.map((t) => t.category))].join("; "),
-    entry.status,
-  ]);
+  const rows: string[][] = [];
+  for (const entry of entries) {
+    const breakHrs = calculateBreakHours(entry.breaks);
+    const date = formatDate(entry.date);
+    const checkIn = formatTime(entry.checkIn);
+    const checkOut = entry.checkOut ? formatTime(entry.checkOut) : "In Progress";
+    const active = formatDuration(entry.activeHours);
+    const brk = formatDuration(breakHrs);
+    const total = formatDuration(entry.totalHours);
+    const notes = entry.notes;
+
+    if (entry.tasks.length === 0) {
+      rows.push([date, "", "", "", "", "", checkIn, checkOut, active, brk, total, notes]);
+    } else {
+      entry.tasks.forEach((t, i) => {
+        rows.push([
+          i === 0 ? date : "",
+          t.description,
+          t.category,
+          formatDuration(t.hours),
+          t.billable ? "Yes" : "No",
+          t.subtasks.join(", "),
+          i === 0 ? checkIn : "",
+          i === 0 ? checkOut : "",
+          i === 0 ? active : "",
+          i === 0 ? brk : "",
+          i === 0 ? total : "",
+          i === 0 ? notes : "",
+        ]);
+      });
+    }
+  }
 
   const csvContent = [headers, ...rows]
     .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))

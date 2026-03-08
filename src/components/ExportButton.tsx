@@ -2,7 +2,8 @@
 
 import type { Entry } from "@/lib/types";
 import { generateCSV, triggerDownload } from "@/lib/utils";
-import { FiDownload, FiPrinter } from "react-icons/fi";
+import { generatePDFReport } from "@/lib/pdf-report";
+import { FiDownload, FiFileText } from "react-icons/fi";
 
 interface ExportButtonProps {
   entries: Entry[];
@@ -15,8 +16,8 @@ export default function ExportButton({ entries, dateLabel = "report" }: ExportBu
     triggerDownload(csv, `hour-tracker-${dateLabel}.csv`, "text/csv");
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePDF = () => {
+    generatePDFReport(entries, dateLabel);
   };
 
   return (
@@ -30,11 +31,12 @@ export default function ExportButton({ entries, dateLabel = "report" }: ExportBu
         Export CSV
       </button>
       <button
-        onClick={handlePrint}
-        className="flex items-center gap-1.5 text-xs bg-surface border border-border rounded-lg px-3 py-2 text-text-secondary hover:text-text-primary hover:border-accent/30 transition-all"
+        onClick={handlePDF}
+        disabled={entries.length === 0}
+        className="flex items-center gap-1.5 text-xs bg-surface border border-border rounded-lg px-3 py-2 text-text-secondary hover:text-text-primary hover:border-accent/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        <FiPrinter className="w-3.5 h-3.5" />
-        Print
+        <FiFileText className="w-3.5 h-3.5" />
+        Export PDF
       </button>
     </div>
   );

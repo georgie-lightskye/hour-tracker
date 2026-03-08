@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pnpm add firebase-admin)",
       "Bash(pnpm add -D tsx)",
-      "Bash(npx tsc --noEmit)"
+      "Bash(npx tsc --noEmit)",
+      "Bash(pnpm add jspdf jspdf-autotable)"
     ]
   }
 }
